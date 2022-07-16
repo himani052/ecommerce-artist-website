@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+  #conteneur php apache
+  app:
+    container_name: apache_container
+    build: ./docker/apache
+    ports:
+      - 5000:8000
+    volumes:
+      - ./site:/var/www/html
+    links:
+      - db:postgres
+
+  #conteneur base de donnée postgres
+  db:
+    container_name: postgres_container
+    image: postgres:13.4
+    volumes:
+      - ./docker/data/postgres/logs:/var/log/postgresql
+      - ./docker/data/postgres/data:/var/lib/postgresql/data
+      - ./hortalia-bdd.sql:/docker-entrypoint-initdb.d/hortalia-bdd.sql
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=hortaliaecommerce
+
+  #conteneur pgadmin pour interface de gestion de la base de donnée
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: postgres@local.int
+      PGADMIN_DEFAULT_PASSWORD: password
+      PG_DATABASE: hortaliaecommerce
+      PG_USER: postgres
+      PG_PASSWORD: password
+    volumes:
+      - ./docker/pgadmin:/root/.pgadmin
+    ports:
+      - 8081:80
+    links:
+      - db:postgres
